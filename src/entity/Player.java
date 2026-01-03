@@ -13,36 +13,23 @@ public class Player extends Entity{
     GamePanel gp;
     KeyHandler keyHandler;
 
-//    public static final int[][] PLAYER_SPRITE = {
-//            {0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0},
-//            {0,0,0,1,2,2,2,2,2,2,1,0,0,0,1,1},
-//            {0,0,0,1,2,1,1,1,1,2,1,0,0,1,3,1},
-//            {0,0,0,1,2,1,4,4,1,2,1,0,0,1,3,1},
-//            {0,0,0,1,2,1,4,4,1,2,1,0,0,1,3,1},
-//            {0,0,0,1,2,2,1,1,2,2,1,0,0,1,3,1},
-//            {0,0,0,0,1,5,5,5,5,1,0,0,1,3,3,1},
-//            {0,0,0,1,5,5,5,5,5,5,1,1,1,1,1,1},
-//            {0,0,1,5,5,5,5,5,5,5,5,1,0,0,0,0},
-//            {0,1,6,5,5,5,2,2,5,5,5,6,1,0,0,0},
-//            {0,1,6,5,5,5,2,2,5,5,5,6,1,0,0,0},
-//            {0,0,1,5,5,5,5,5,5,5,5,1,0,0,0,0},
-//            {0,0,0,1,1,1,0,0,1,1,1,0,0,0,0,0},
-//            {0,0,0,1,6,1,0,0,1,6,1,0,0,0,0,0},
-//            {0,0,0,1,6,1,0,0,1,6,1,0,0,0,0,0},
-//            {0,0,0,1,1,1,0,0,1,1,1,0,0,0,0,0}
-//    };
+    public final int screenX;
+    public final int screenY;
 
     public Player(GamePanel gp, KeyHandler keyH) {
         this.gp = gp;
         this.keyHandler = keyH;
+
+        screenX = gp.screenWidth/2 - (gp.tileSize/2);
+        screenY = gp.screenHeight/2 - (gp.tileSize/2);
 
         setDefaultValues();
         getPlayerImage();
     }
 
     public void setDefaultValues() {
-        x = 100;
-        y = 100;
+        worldX = gp.tileSize * 23;
+        worldY = gp.tileSize * 21;
         speed = 4;
         direction = "down";
     }
@@ -61,23 +48,23 @@ public class Player extends Entity{
     public void update() {
         if (keyHandler.upPressed == true) {
             direction = "down";
-            y -= speed;
+            worldY -= speed;
         } else if (keyHandler.downPressed == true) {
             direction = "down";
-            y += speed;
+            worldY += speed;
         } else if (keyHandler.rightPressed == true) {
             direction = "down";
-            x += speed;
+            worldX += speed;
         } else if (keyHandler.leftPressed == true) {
             direction = "down";
-            x -= speed;
+            worldX -= speed;
         }
     }
 
     public void draw(Graphics2D g2) {
 
         BufferedImage image = down;
-        g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
+        g2.drawImage(image, screenX, screenY, gp.tileSize, gp.tileSize, null);
     }
 
 }
