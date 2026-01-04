@@ -1,4 +1,4 @@
-package main.tile;
+package tile;
 
 import main.GamePanel;
 
@@ -94,7 +94,6 @@ public class TileManager {
 
         int worldCol = 0;
         int worldRow = 0;
-
 
         while(worldCol < gp.maxWorldCol && worldRow < gp.maxWorldRow) {
 
