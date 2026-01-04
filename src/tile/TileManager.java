@@ -28,7 +28,6 @@ public class TileManager {
     public void getTileImage() {
 
         try {
-            System.out.println("Image loading started");
 
             tile[0] = new Tile();
             tile[0].image = ImageIO.read(getClass().getResourceAsStream("/tiles/002.png"));
@@ -50,8 +49,6 @@ public class TileManager {
 
             tile[5] = new Tile();
             tile[5].image = ImageIO.read(getClass().getResourceAsStream("/tiles/003.png"));
-
-            System.out.println("Image loading finished");
 
         } catch(IOException e) {
             e.printStackTrace();
