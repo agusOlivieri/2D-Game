@@ -23,6 +23,8 @@ public class Player extends Entity{
         screenX = gp.screenWidth/2 - (gp.tileSize/2);
         screenY = gp.screenHeight/2 - (gp.tileSize/2);
 
+        solidArea = new Rectangle(8, 16, 32, 32);
+
         setDefaultValues();
         getPlayerImage();
     }
@@ -37,33 +39,72 @@ public class Player extends Entity{
     public void getPlayerImage() {
         try {
 
+            up = ImageIO.read(getClass().getResourceAsStream("/player/github-octopuss-2.png"));
             down = ImageIO.read(getClass().getResourceAsStream("/player/github-octopuss-2.png"));
+            right = ImageIO.read(getClass().getResourceAsStream("/player/github-octopuss-2.png"));
+            left = ImageIO.read(getClass().getResourceAsStream("/player/github-octopuss-2.png"));
 
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Error al cargar la imagen del leñador.");
         }
     }
 
     public void update() {
-        if (keyHandler.upPressed == true) {
-            direction = "down";
-            worldY -= speed;
-        } else if (keyHandler.downPressed == true) {
-            direction = "down";
-            worldY += speed;
-        } else if (keyHandler.rightPressed == true) {
-            direction = "down";
-            worldX += speed;
-        } else if (keyHandler.leftPressed == true) {
-            direction = "down";
-            worldX -= speed;
+        if(keyHandler.upPressed == true || keyHandler.downPressed == true || keyHandler.leftPressed == true || keyHandler.rightPressed == true) {
+
+            if (keyHandler.upPressed == true) {
+                direction = "up";
+            } else if (keyHandler.downPressed == true) {
+                direction = "down";
+            } else if (keyHandler.rightPressed == true) {
+                direction = "right";
+            } else if (keyHandler.leftPressed == true) {
+                direction = "left";
+            }
+
+            // CHECK TILE COLLISION
+            collisionOn = false;
+            gp.collisionChecker.checkTile(this);
+
+            // IF COLLISION IS FALSE, PLAYER CAN MOVE
+            if (collisionOn == false) {
+                switch (direction) {
+                    case "up":
+                        worldY -= speed;
+                        break;
+                    case "down":
+                        worldY += speed;
+                        break;
+                    case "right":
+                        worldX += speed;
+                        break;
+                    case "left":
+                        worldX -= speed;
+                        break;
+                }
+            }
         }
     }
 
     public void draw(Graphics2D g2) {
 
-        BufferedImage image = down;
+        BufferedImage image = null;
+
+        switch (direction) {
+            case "up":
+                image = up;
+                break;
+            case "down":
+                image = down;
+                break;
+            case "right":
+                image = right;
+                break;
+            case "left":
+                image = left;
+                break;
+        }
+
         g2.drawImage(image, screenX, screenY, gp.tileSize, gp.tileSize, null);
     }
 
