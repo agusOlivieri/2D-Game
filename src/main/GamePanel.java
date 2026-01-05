@@ -1,5 +1,6 @@
 package main;
 
+import entity.Llama;
 import entity.Player;
 import tile.TileManager;
 import object.SuperObject;
@@ -11,7 +12,7 @@ import java.util.Arrays;
 public class GamePanel extends JPanel implements Runnable{
 
     // SCREEN SETTINGS
-    final int originalTileSize = 16;
+    public final int originalTileSize = 16;
     final int scale = 3;
 
     public final int tileSize = originalTileSize * scale;
@@ -36,6 +37,8 @@ public class GamePanel extends JPanel implements Runnable{
     public AssetSetter assetSetter = new AssetSetter(this);
     public Player player = new Player(this, keyHandler);
     public SuperObject objects[] = new SuperObject[10];
+
+    public Llama llama = new Llama(this);
 
     public GamePanel() {
 
@@ -83,6 +86,7 @@ public class GamePanel extends JPanel implements Runnable{
     public void update() {
 
         player.update();
+        llama.update();
     }
 
     public void paintComponent(Graphics g) {
@@ -102,6 +106,8 @@ public class GamePanel extends JPanel implements Runnable{
 
         // PLAYER
         player.draw(g2);
+
+        llama.draw(g2);
 
         g2.dispose();
     }
