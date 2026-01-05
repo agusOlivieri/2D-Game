@@ -11,8 +11,6 @@ public class Llama extends Entity{
 
     GamePanel gp;
 
-    public BufferedImage image;
-
     public Llama(GamePanel gp) {
 
         this.gp = gp;
@@ -22,15 +20,50 @@ public class Llama extends Entity{
 
         try {
             System.out.println("intentando cargar imagen");
-            image = ImageIO.read(getClass().getResourceAsStream("/player/llama_48.png"));
+            right1 = ImageIO.read(getClass().getResourceAsStream("/player/llama_right.png"));
+            left1 = ImageIO.read(getClass().getResourceAsStream("/player/llama_left.png"));
             System.out.println("se cargó la imagen correctamente");
         }catch (IOException e) {
             e.printStackTrace();
         }
 
+        solidArea = new Rectangle(8, 16, 32, 32);
+        solidAreaDefaultX = solidArea.x;
+        solidAreaDefaultY = solidArea.y;
+
+        setDefaultValues();
+    }
+
+    public void setDefaultValues() {
+        worldX = gp.tileSize * 21;
+        worldY = gp.tileSize * 21;
+        speed = 1;
+        direction = "right";
     }
 
     public void update() {
+
+        // CHECK TILE COLLISION
+        collisionOn = false;
+        gp.collisionChecker.checkTile(this);
+
+        if (collisionOn == false) {
+            switch (direction) {
+                case "right":
+                    worldX += speed;
+                    break;
+                case "left":
+                    worldX -= speed;
+                    break;
+            }
+        } else {
+            if (direction == "right") {
+                direction = "left";
+            } else if (direction == "left") {
+                direction = "right";
+            }
+        }
+
         spriteCounter++;
 
         if (spriteCounter > 6) {
@@ -60,7 +93,14 @@ public class Llama extends Entity{
             int sx2 = sx1 + gp.tileSize;
             int sy2 = sy1 + gp.tileSize;
 
-            g2.drawImage(image, screenX, screenY, screenX + gp.tileSize * 2, screenY + gp.tileSize * 2, sx1, sy1, sx2, sy2,null);
+            switch (direction) {
+                case "right":
+                    g2.drawImage(right1, screenX, screenY, screenX + gp.tileSize * 2, screenY + gp.tileSize * 2, sx1, sy1, sx2, sy2,null);
+                    break;
+                case "left":
+                    g2.drawImage(left1, screenX, screenY, screenX + gp.tileSize * 2, screenY + gp.tileSize * 2, sx1, sy1, sx2, sy2,null);
+                    break;
+            }
         }
 
     }
