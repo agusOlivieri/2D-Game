@@ -18,6 +18,8 @@ public class Player extends Entity{
 
     public int hasKey = 0;
 
+    public int standCounter = 0;
+
     public Player(GamePanel gp, KeyHandler keyH) {
         this.gp = gp;
         this.keyHandler = keyH;
@@ -105,7 +107,15 @@ public class Player extends Entity{
                 }
                 spriteCounter = 0;
             }
+        } else {
+            standCounter++;
+
+            if (standCounter == 20) {
+                spriteNum = 1;
+                standCounter = 0;
+            }
         }
+
     }
 
     public void pickupObject(int i) {
