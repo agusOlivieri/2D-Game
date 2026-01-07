@@ -21,6 +21,12 @@ public class Player extends Entity{
 
     public int standCounter = 0;
 
+    public boolean dodging = false;
+    public int dodgeTimer = 0;
+    public int dodgeCooldown = 0;
+    BufferedImage dodgeRightSprite;
+    BufferedImage dodgeLeftSprite;
+
     public Player(GamePanel gp, KeyHandler keyH) {
         this.gp = gp;
         this.keyHandler = keyH;
@@ -53,6 +59,13 @@ public class Player extends Entity{
         right2 = setup("boy_right_2");
         left1 = setup("boy_left_1");
         left2 = setup("boy_left_2");
+
+        try {
+            dodgeRightSprite = ImageIO.read(getClass().getResourceAsStream("/player/dash_right.png"));
+            dodgeLeftSprite = ImageIO.read(getClass().getResourceAsStream("/player/dash_left.png"));
+        }catch(IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public BufferedImage setup(String imageName) {
@@ -70,62 +83,103 @@ public class Player extends Entity{
     }
 
     public void update() {
-        if(keyHandler.upPressed == true || keyHandler.downPressed == true || keyHandler.leftPressed == true || keyHandler.rightPressed == true) {
 
-            if (keyHandler.upPressed == true) {
-                direction = "up";
-            } else if (keyHandler.downPressed == true) {
-                direction = "down";
-            } else if (keyHandler.rightPressed == true) {
-                direction = "right";
-            } else if (keyHandler.leftPressed == true) {
-                direction = "left";
-            }
+        // 1. GESTIÓN DEL COOLDOWN
+        if (dodgeCooldown > 0) {
+            dodgeCooldown--;
+        }
 
-            // CHECK TILE COLLISION
-            collisionOn = false;
-            gp.collisionChecker.checkTile(this);
+        // Variable para saber si el jugador quiere moverse
+        boolean isMoving = false;
 
-            // CHECK OBJECT COLLISION
-            int objIndex = gp.collisionChecker.checkObject(this, true);
-            pickupObject(objIndex);
+        // --- 2. LEER INPUT DE DIRECCIÓN (SIEMPRE) ---
+        // Ya no importa si dodging es true o false, leemos el teclado igual.
+        if (keyHandler.upPressed == true) {
+            direction = "up";
+            isMoving = true;
+        } else if (keyHandler.downPressed == true) {
+            direction = "down";
+            isMoving = true;
+        } else if (keyHandler.leftPressed == true) {
+            direction = "left";
+            isMoving = true;
+        } else if (keyHandler.rightPressed == true) {
+            direction = "right";
+            isMoving = true;
+        }
 
-            // IF COLLISION IS FALSE, PLAYER CAN MOVE
-            if (collisionOn == false) {
-                switch (direction) {
-                    case "up":
-                        worldY -= speed;
-                        break;
-                    case "down":
-                        worldY += speed;
-                        break;
-                    case "right":
-                        worldX += speed;
-                        break;
-                    case "left":
-                        worldX -= speed;
-                        break;
-                }
-            }
+        // --- 3. ACTIVAR EL DASH ---
+        // Si presiona espacio, tiene cooldown disponible y se está moviendo
+        if (keyHandler.spacePressed == true && dodgeCooldown == 0 && isMoving == true) {
+            dodging = true;
+            dodgeCooldown = 60;
+            spriteCounter = 0;
+            spriteNum = 0;
+        }
 
-            spriteCounter++;
-            if (spriteCounter > 12) {
-                if (spriteNum == 1) {
-                    spriteNum = 2;
-                } else if (spriteNum == 2) {
-                    spriteNum = 1;
-                }
-                spriteCounter = 0;
-            }
-        } else {
-            standCounter++;
+        // --- 4. GESTIÓN DEL ESTADO DASH ---
+        int currentSpeed = speed; // Velocidad base
 
-            if (standCounter == 20) {
-                spriteNum = 1;
-                standCounter = 0;
+        if (dodging == true) {
+            currentSpeed = speed * 2; // Aumentamos velocidad
+            dodgeTimer++;
+
+            // Opción B: Sigue deslizándose hasta que termine el dash -> Descomenta la línea de abajo:
+             isMoving = true;
+
+            if (dodgeTimer > 20) { // Duración del dash
+                dodging = false;
+                dodgeTimer = 0;
+                currentSpeed = speed;
+                spriteNum = 1; // Reset de animación
             }
         }
 
+        // --- 5. COLISIONES ---
+        collisionOn = false;
+        gp.collisionChecker.checkTile(this);
+        int objIndex = gp.collisionChecker.checkObject(this, true);
+        pickupObject(objIndex);
+
+        // --- 6. MOVER AL JUGADOR ---
+        // Solo movemos si hay input de movimiento (isMoving) y no hay colisión
+        if (collisionOn == false && isMoving == true) {
+            switch (direction) {
+                case "up":    worldY -= currentSpeed; break;
+                case "down":  worldY += currentSpeed; break;
+                case "left":  worldX -= currentSpeed; break;
+                case "right": worldX += currentSpeed; break;
+            }
+        }
+
+        // --- 7. ANIMACIONES ---
+        if (dodging == true) {
+            // Animación Dash
+            spriteCounter++;
+            if (spriteCounter > 3) {
+                spriteNum++;
+                if (spriteNum > 6) spriteNum = 0; // Ajusta según frames de tu dash
+                spriteCounter = 0;
+            }
+        }
+        else {
+            // Animación Caminar
+            if (isMoving == true) {
+                spriteCounter++;
+                if (spriteCounter > 12) {
+                    if (spriteNum == 1) spriteNum = 2;
+                    else spriteNum = 1;
+                    spriteCounter = 0;
+                }
+            } else {
+                // Idle
+                standCounter++;
+                if (standCounter == 20) {
+                    spriteNum = 1;
+                    standCounter = 0;
+                }
+            }
+        }
     }
 
     public void pickupObject(int i) {
@@ -154,42 +208,60 @@ public class Player extends Entity{
 
         BufferedImage image = null;
 
-        switch (direction) {
-            case "up":
-                if(spriteNum == 1) {
-                    image = up1;
-                }
-                if(spriteNum == 2) {
-                    image = up2;
-                }
-                break;
-            case "down":
-                if(spriteNum == 1) {
+        if (dodging == true) {
+            int sx1 = spriteNum * gp.originalTileSize;
+            int sy1 = 0;
+
+            int sx2 = sx1 + gp.originalTileSize;
+            int sy2 = sy1 + gp.originalTileSize;
+
+            image = dodgeRightSprite;
+            g2.drawImage(image, screenX, screenY, screenX + gp.tileSize, screenY + gp.tileSize, sx1, sy1, sx2, sy2,null);
+
+            if (direction == "left") {
+                image = dodgeLeftSprite;
+                g2.drawImage(image, screenX, screenY, screenX + gp.tileSize, screenY + gp.tileSize, sx1, sy1, sx2, sy2,null);
+            }
+        } else {
+            switch (direction) {
+                case "up":
+                    if(spriteNum == 1) {
+                        image = up1;
+                    }
+                    if(spriteNum == 2) {
+                        image = up2;
+                    }
+                    break;
+                case "down":
+                    if(spriteNum == 1) {
+                        image = down1;
+                    }
+                    if(spriteNum == 2) {
+                        image = down2;
+                    }
+                    break;
+                case "right":
+                    if(spriteNum == 1) {
+                        image = right1;
+                    }
+                    if(spriteNum == 2) {
+                        image = right2;
+                    }
+                    break;
+                case "left":
+                    if(spriteNum == 1) {
+                        image = left1;
+                    }
+                    if(spriteNum == 2) {
+                        image = left2;
+                    }
+                    break;
+                case "":
                     image = down1;
-                }
-                if(spriteNum == 2) {
-                    image = down2;
-                }
                 break;
-            case "right":
-                if(spriteNum == 1) {
-                    image = right1;
-                }
-                if(spriteNum == 2) {
-                    image = right2;
-                }
-                break;
-            case "left":
-                if(spriteNum == 1) {
-                    image = left1;
-                }
-                if(spriteNum == 2) {
-                    image = left2;
-                }
-                break;
+            }
+
+            g2.drawImage(image, screenX, screenY, null);
         }
-
-        g2.drawImage(image, screenX, screenY, null);
     }
-
 }
