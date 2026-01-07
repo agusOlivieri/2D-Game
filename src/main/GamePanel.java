@@ -96,7 +96,7 @@ public class GamePanel extends JPanel implements Runnable{
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D)g;
 
-        long drawStart = System.nanoTime();
+        // long drawStart = System.nanoTime();
 
         // TILE
         tileManager.draw(g2);
@@ -111,13 +111,13 @@ public class GamePanel extends JPanel implements Runnable{
         // PLAYER
         player.draw(g2);
 
-        //llama.draw(g2);
+        // llama.draw(g2);
 
         ui.draw(g2);
 
-        long drawEnd = System.nanoTime();
-        long passed = (drawEnd - drawStart);
-        System.out.println("Draw Time: " + passed);
+        // long drawEnd = System.nanoTime();
+        // long passed = (drawEnd - drawStart);
+        // System.out.println("Draw Time: " + passed);
 
         g2.dispose();
     }
