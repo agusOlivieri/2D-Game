@@ -26,6 +26,8 @@ public class Player extends Entity{
     public int dodgeCooldown = 0;
     BufferedImage dodgeRightSprite;
     BufferedImage dodgeLeftSprite;
+    BufferedImage right;
+    BufferedImage left;
 
     public Player(GamePanel gp, KeyHandler keyH) {
         this.gp = gp;
@@ -67,6 +69,8 @@ public class Player extends Entity{
         try {
             dodgeRightSprite = ImageIO.read(getClass().getResourceAsStream("/player/dash_right.png"));
             dodgeLeftSprite = ImageIO.read(getClass().getResourceAsStream("/player/dash_left.png"));
+            right = ImageIO.read(getClass().getResourceAsStream("/player/boy_right.png"));
+            left = ImageIO.read(getClass().getResourceAsStream("/player/boy_left.png"));
         }catch(IOException e) {
             e.printStackTrace();
         }
@@ -170,9 +174,9 @@ public class Player extends Entity{
             // Animación Caminar
             if (isMoving == true) {
                 spriteCounter++;
-                if (spriteCounter > 12) {
-                    if (spriteNum == 1) spriteNum = 2;
-                    else spriteNum = 1;
+                if (spriteCounter > 5) {
+                    spriteNum++;
+                    if (spriteNum >= 8) spriteNum = 0;
                     spriteCounter = 0;
                 }
             } else {
@@ -212,12 +216,14 @@ public class Player extends Entity{
 
         BufferedImage image = null;
 
-        if (dodging == true) {
-            int sx1 = spriteNum * gp.originalTileSize;
-            int sy1 = 0;
+        int sx1 = spriteNum * gp.originalTileSize;
+        int sy1 = 0;
 
-            int sx2 = sx1 + gp.originalTileSize;
-            int sy2 = sy1 + gp.originalTileSize;
+        int sx2 = sx1 + gp.originalTileSize;
+        int sy2 = sy1 + gp.originalTileSize;
+
+        if (dodging == true) {
+
 
             image = dodgeRightSprite;
             g2.drawImage(image, screenX, screenY, screenX + gp.tileSize, screenY + gp.tileSize, sx1, sy1, sx2, sy2,null);
@@ -245,27 +251,18 @@ public class Player extends Entity{
                     }
                     break;
                 case "right":
-                    if(spriteNum == 1) {
-                        image = right1;
-                    }
-                    if(spriteNum == 2) {
-                        image = right2;
-                    }
+                    image = right;
                     break;
                 case "left":
-                    if(spriteNum == 1) {
-                        image = left1;
-                    }
-                    if(spriteNum == 2) {
-                        image = left2;
-                    }
+                    image = left;
                     break;
                 case "":
                     image = down1;
                 break;
             }
+            g2.drawImage(image, screenX, screenY, screenX + gp.tileSize, screenY + gp.tileSize, sx1, sy1, sx2, sy2,null);
 
-            g2.drawImage(image, screenX, screenY, null);
+//            g2.drawImage(image, screenX, screenY, null);
         }
     }
 }
