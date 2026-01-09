@@ -92,86 +92,130 @@ public class Player extends Entity{
 
     public void update() {
 
-        // 1. GESTIÓN DEL COOLDOWN
-        if (dodgeCooldown > 0) {
-            dodgeCooldown--;
-        }
+        // 1. COOLDOWN
+        if (dodgeCooldown > 0) dodgeCooldown--;
 
-        // Variable para saber si el jugador quiere moverse
         boolean isMoving = false;
 
-        // --- 2. LEER INPUT DE DIRECCIÓN (SIEMPRE) ---
-        // Ya no importa si dodging es true o false, leemos el teclado igual.
-        if (keyHandler.upPressed == true) {
-            direction = "up";
-            isMoving = true;
-        } else if (keyHandler.downPressed == true) {
-            direction = "down";
-            isMoving = true;
-        } else if (keyHandler.leftPressed == true) {
-            direction = "left";
-            isMoving = true;
-        } else if (keyHandler.rightPressed == true) {
-            direction = "right";
-            isMoving = true;
-        }
+        // Variables para capturar la INTENCIÓN de movimiento (-1, 0, 1)
+        int dx = 0;
+        int dy = 0;
 
-        // --- 3. ACTIVAR EL DASH ---
-        // Si presiona espacio, tiene cooldown disponible y se está moviendo
-        if (keyHandler.spacePressed == true && dodgeCooldown == 0 && isMoving == true) {
+        // --- LEER INPUT ---
+        if (keyHandler.upPressed)    dy = -1;
+        if (keyHandler.downPressed)  dy = 1;
+        if (keyHandler.leftPressed)  dx = -1;
+        if (keyHandler.rightPressed) dx = 1;
+
+        // Si hay input, nos estamos moviendo
+        if (dx != 0 || dy != 0) isMoving = true;
+
+        // --- DASH (Sin cambios) ---
+        if (keyHandler.spacePressed && dodgeCooldown == 0 && isMoving) {
             dodging = true;
             dodgeCooldown = 60;
             spriteCounter = 0;
             spriteNum = 0;
         }
 
-        // --- 4. GESTIÓN DEL ESTADO DASH ---
-        int currentSpeed = speed; // Velocidad base
+        // --- CALCULAR VELOCIDAD FINAL ---
+        double finalSpeed = speed;
 
-        if (dodging == true) {
-            currentSpeed = speed * 2; // Aumentamos velocidad
+        if (dodging) {
+            finalSpeed *= 2;
             dodgeTimer++;
-
-            // Opción B: Sigue deslizándose hasta que termine el dash -> Descomenta la línea de abajo:
-             isMoving = true;
-
-            if (dodgeTimer > 20) { // Duración del dash
+            if (dodgeTimer > 20) {
                 dodging = false;
                 dodgeTimer = 0;
-                currentSpeed = speed;
-                spriteNum = 1; // Reset de animación
+                finalSpeed = speed;
+                spriteNum = 1;
             }
         }
 
-        // --- 5. COLISIONES ---
-        collisionOn = false;
-        gp.collisionChecker.checkTile(this);
-        int objIndex = gp.collisionChecker.checkObject(this, true);
-        pickupObject(objIndex);
+        // Corrección Pitágoras (Si es diagonal)
+        if (dx != 0 && dy != 0) {
+            finalSpeed *= 0.7071;
+        }
 
-        // --- 6. MOVER AL JUGADOR ---
-        // Solo movemos si hay input de movimiento (isMoving) y no hay colisión
-        if (collisionOn == false && isMoving == true) {
-            switch (direction) {
-                case "up":    worldY -= currentSpeed; break;
-                case "down":  worldY += currentSpeed; break;
-                case "left":  worldX -= currentSpeed; break;
-                case "right": worldX += currentSpeed; break;
+        // Convertimos la velocidad a entero para usarla en colisiones
+        int currentSpeed = (int) finalSpeed;
+
+
+        // --- MOVIMIENTO Y COLISIONES (EJE POR EJE) ---
+        // Solo procesamos si hay intención de moverse
+        if (isMoving) {
+
+            // Guardamos la dirección "visual" original para no romper la animación
+            String originalDirection = direction;
+
+            // Actualizamos la dirección visual basada en el último input
+            // (Esto es solo para que el sprite mire al lado correcto al final)
+            if(dy == -1) direction = "up";
+            if(dy == 1)  direction = "down";
+            if(dx == -1) direction = "left";
+            if(dx == 1)  direction = "right";
+
+
+            // === PASO 1: INTENTAR MOVER EN X ===
+            if (dx != 0) {
+                // 1.1 Forzamos la dirección para que checkTile revise el lado correcto
+                if (dx == -1) direction = "left";
+                if (dx == 1)  direction = "right";
+
+                // 1.2 Chequeamos colisión
+                collisionOn = false;
+                gp.collisionChecker.checkTile(this);
+                // IMPORTANTE: checkObject requiere la dirección correcta también
+                int objIndex = gp.collisionChecker.checkObject(this, true);
+                pickupObject(objIndex); // Recogemos objeto si chocamos en X
+
+                // 1.3 Si no hay pared, movemos SOLO en X
+                if (collisionOn == false) {
+                    worldX += dx * currentSpeed;
+                }
+            }
+
+            // === PASO 2: INTENTAR MOVER EN Y ===
+            if (dy != 0) {
+                // 2.1 Forzamos la dirección vertical
+                if (dy == -1) direction = "up";
+                if (dy == 1)  direction = "down";
+
+                // 2.2 Chequeamos colisión
+                collisionOn = false;
+                gp.collisionChecker.checkTile(this);
+                int objIndex = gp.collisionChecker.checkObject(this, true);
+                pickupObject(objIndex); // Recogemos objeto si chocamos en Y
+
+                // 2.3 Si no hay pared, movemos SOLO en Y
+                if (collisionOn == false) {
+                    worldY += dy * currentSpeed;
+                }
+            }
+
+            // === PASO 3: RESTAURAR DIRECCIÓN VISUAL ===
+            // Si nos movimos en diagonal, la dirección quedó seteada en el último eje revisado (Y).
+            // Si quieres priorizar que se vea de lado (left/right) en diagonales:
+            if (dx != 0) {
+                if (dx == -1) direction = "left";
+                if (dx == 1) direction = "right";
+            } else if (dy != 0) {
+                // Si no se mueve horizontalmente, usamos la vertical
+                if (dy == -1) direction = "up";
+                if (dy == 1) direction = "down";
             }
         }
 
         // --- 7. ANIMACIONES ---
         if (dodging == true) {
-            // Animación Dash
             spriteCounter++;
             if (spriteCounter > 3) {
                 spriteNum++;
-                if (spriteNum > 6) spriteNum = 0; // Ajusta según frames de tu dash
+                if (spriteNum > 6) spriteNum = 0;
                 spriteCounter = 0;
             }
         }
         else {
-            // Animación Caminar
             if (isMoving == true) {
                 spriteCounter++;
                 if (spriteCounter > 5) {
@@ -180,7 +224,6 @@ public class Player extends Entity{
                     spriteCounter = 0;
                 }
             } else {
-                // Idle
                 standCounter++;
                 if (standCounter == 20) {
                     spriteNum = 1;
@@ -189,6 +232,106 @@ public class Player extends Entity{
             }
         }
     }
+
+//    public void update() {
+//
+//        // 1. GESTIÓN DEL COOLDOWN
+//        if (dodgeCooldown > 0) {
+//            dodgeCooldown--;
+//        }
+//
+//        // Variable para saber si el jugador quiere moverse
+//        boolean isMoving = false;
+//
+//        // --- 2. LEER INPUT DE DIRECCIÓN (SIEMPRE) ---
+//        // Ya no importa si dodging es true o false, leemos el teclado igual.
+//        if (keyHandler.upPressed == true) {
+//            direction = "up";
+//            isMoving = true;
+//        } else if (keyHandler.downPressed == true) {
+//            direction = "down";
+//            isMoving = true;
+//        } else if (keyHandler.leftPressed == true) {
+//            direction = "left";
+//            isMoving = true;
+//        } else if (keyHandler.rightPressed == true) {
+//            direction = "right";
+//            isMoving = true;
+//        }
+//
+//        // --- 3. ACTIVAR EL DASH ---
+//        // Si presiona espacio, tiene cooldown disponible y se está moviendo
+//        if (keyHandler.spacePressed == true && dodgeCooldown == 0 && isMoving == true) {
+//            dodging = true;
+//            dodgeCooldown = 60;
+//            spriteCounter = 0;
+//            spriteNum = 0;
+//        }
+//
+//        // --- 4. GESTIÓN DEL ESTADO DASH ---
+//        int currentSpeed = speed; // Velocidad base
+//
+//        if (dodging == true) {
+//            currentSpeed = speed * 2; // Aumentamos velocidad
+//            dodgeTimer++;
+//
+//            // Opción B: Sigue deslizándose hasta que termine el dash -> Descomenta la línea de abajo:
+//             isMoving = true;
+//
+//            if (dodgeTimer > 20) { // Duración del dash
+//                dodging = false;
+//                dodgeTimer = 0;
+//                currentSpeed = speed;
+//                spriteNum = 1; // Reset de animación
+//            }
+//        }
+//
+//        // --- 5. COLISIONES ---
+//        collisionOn = false;
+//        gp.collisionChecker.checkTile(this);
+//        int objIndex = gp.collisionChecker.checkObject(this, true);
+//        pickupObject(objIndex);
+//
+//        // --- 6. MOVER AL JUGADOR ---
+//        // Solo movemos si hay input de movimiento (isMoving) y no hay colisión
+//        if (collisionOn == false && isMoving == true) {
+//            switch (direction) {
+//                case "up":    worldY -= currentSpeed; break;
+//                case "down":  worldY += currentSpeed; break;
+//                case "left":  worldX -= currentSpeed; break;
+//                case "right": worldX += currentSpeed; break;
+//            }
+//        }
+//
+//        // --- 7. ANIMACIONES ---
+//        if (dodging == true) {
+//            // Animación Dash
+//            spriteCounter++;
+//            if (spriteCounter > 3) {
+//                spriteNum++;
+//                if (spriteNum > 6) spriteNum = 0; // Ajusta según frames de tu dash
+//                spriteCounter = 0;
+//            }
+//        }
+//        else {
+//            // Animación Caminar
+//            if (isMoving == true) {
+//                spriteCounter++;
+//                if (spriteCounter > 5) {
+//                    spriteNum++;
+//                    if (spriteNum >= 8) spriteNum = 0;
+//                    spriteCounter = 0;
+//                }
+//            } else {
+//                // Idle
+//                standCounter++;
+//                if (standCounter == 20) {
+//                    spriteNum = 1;
+//                    standCounter = 0;
+//                }
+//            }
+//        }
+//    }
 
     public void pickupObject(int i) {
 
