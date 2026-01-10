@@ -28,6 +28,7 @@ public class Player extends Entity{
     BufferedImage dodgeLeftSprite;
     BufferedImage right;
     BufferedImage left;
+    BufferedImage up;
 
     public Player(GamePanel gp, KeyHandler keyH) {
         this.gp = gp;
@@ -71,6 +72,7 @@ public class Player extends Entity{
             dodgeLeftSprite = ImageIO.read(getClass().getResourceAsStream("/player/dash_left.png"));
             right = ImageIO.read(getClass().getResourceAsStream("/player/boy_right.png"));
             left = ImageIO.read(getClass().getResourceAsStream("/player/boy_left.png"));
+            up = ImageIO.read(getClass().getResourceAsStream("/player/boy_up.png"));
         }catch(IOException e) {
             e.printStackTrace();
         }
@@ -378,12 +380,7 @@ public class Player extends Entity{
         } else {
             switch (direction) {
                 case "up":
-                    if(spriteNum == 1) {
-                        image = up1;
-                    }
-                    if(spriteNum == 2) {
-                        image = up2;
-                    }
+                    image = up;
                     break;
                 case "down":
                     if(spriteNum == 1) {
