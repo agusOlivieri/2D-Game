@@ -200,7 +200,7 @@ public class Player extends Entity{
             spriteCounter++;
             if (spriteCounter > 3) {
                 spriteNum++;
-                if (spriteNum > 6) spriteNum = 0;
+                if (spriteNum > 6) spriteNum = 1;
                 spriteCounter = 0;
             }
         }
@@ -209,7 +209,7 @@ public class Player extends Entity{
                 spriteCounter++;
                 if (spriteCounter > 5) {
                     spriteNum++;
-                    if (spriteNum >= 8) spriteNum = 0;
+                    if (spriteNum >= 9) spriteNum = 1;
                     spriteCounter = 0;
                 }
             } else {
