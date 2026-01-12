@@ -24,7 +24,6 @@ public class Player extends Entity{
     public boolean dodging = false;
     public int dodgeTimer = 0;
     public int dodgeCooldown = 0;
-    BufferedImage dodgeRightSprite, dodgeLeftSprite, right, left, up, down;
 
     public Player(GamePanel gp, KeyHandler keyH) {
         this.gp = gp;
@@ -54,18 +53,9 @@ public class Player extends Entity{
 
     public void getPlayerImage() {
 
-        up1 = setup("boy_up_1");
-        up2 = setup("boy_up_2");
-        down1 = setup("boy_down_1");
-        down2 = setup("boy_down_2");
-        right1 = setup("boy_right_1");
-        right2 = setup("boy_right_2");
-        left1 = setup("boy_left_1");
-        left2 = setup("boy_left_2");
-
         try {
-            dodgeRightSprite = ImageIO.read(getClass().getResourceAsStream("/player/dash_right.png"));
-            dodgeLeftSprite = ImageIO.read(getClass().getResourceAsStream("/player/dash_left.png"));
+            dodgeRight = ImageIO.read(getClass().getResourceAsStream("/player/dash_right.png"));
+            dodgeLeft = ImageIO.read(getClass().getResourceAsStream("/player/dash_left.png"));
             right = ImageIO.read(getClass().getResourceAsStream("/player/boy_right.png"));
             left = ImageIO.read(getClass().getResourceAsStream("/player/boy_left.png"));
             up = ImageIO.read(getClass().getResourceAsStream("/player/boy_up.png"));
@@ -224,8 +214,8 @@ public class Player extends Entity{
                 }
             } else {
                 standCounter++;
-                if (standCounter == 20) {
-                    spriteNum = 1;
+                if (standCounter == 60) {
+                    spriteNum = 0;
                     standCounter = 0;
                 }
             }
@@ -367,11 +357,11 @@ public class Player extends Entity{
         if (dodging == true) {
 
 
-            image = dodgeRightSprite;
+            image = dodgeRight;
             g2.drawImage(image, screenX, screenY, screenX + gp.tileSize, screenY + gp.tileSize, sx1, sy1, sx2, sy2,null);
 
             if (direction == "left") {
-                image = dodgeLeftSprite;
+                image = dodgeLeft;
                 g2.drawImage(image, screenX, screenY, screenX + gp.tileSize, screenY + gp.tileSize, sx1, sy1, sx2, sy2,null);
             }
         } else {
@@ -388,9 +378,6 @@ public class Player extends Entity{
                 case "left":
                     image = left;
                     break;
-                case "":
-                    image = down1;
-                break;
             }
             g2.drawImage(image, screenX, screenY, screenX + gp.tileSize, screenY + gp.tileSize, sx1, sy1, sx2, sy2,null);
 

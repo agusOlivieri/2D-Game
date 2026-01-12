@@ -19,10 +19,8 @@ public class Llama extends Entity{
         worldY = 22 * gp.tileSize;
 
         try {
-            System.out.println("intentando cargar imagen");
-            right1 = ImageIO.read(getClass().getResourceAsStream("/player/llama_right.png"));
-            left1 = ImageIO.read(getClass().getResourceAsStream("/player/llama_left.png"));
-            System.out.println("se cargó la imagen correctamente");
+            right = ImageIO.read(getClass().getResourceAsStream("/player/llama_right.png"));
+            left = ImageIO.read(getClass().getResourceAsStream("/player/llama_left.png"));
         }catch (IOException e) {
             e.printStackTrace();
         }
@@ -95,10 +93,10 @@ public class Llama extends Entity{
 
             switch (direction) {
                 case "right":
-                    g2.drawImage(right1, screenX, screenY, screenX + gp.tileSize * 2, screenY + gp.tileSize * 2, sx1, sy1, sx2, sy2,null);
+                    g2.drawImage(right, screenX, screenY, screenX + gp.tileSize * 2, screenY + gp.tileSize * 2, sx1, sy1, sx2, sy2,null);
                     break;
                 case "left":
-                    g2.drawImage(left1, screenX, screenY, screenX + gp.tileSize * 2, screenY + gp.tileSize * 2, sx1, sy1, sx2, sy2,null);
+                    g2.drawImage(left, screenX, screenY, screenX + gp.tileSize * 2, screenY + gp.tileSize * 2, sx1, sy1, sx2, sy2,null);
                     break;
             }
         }
