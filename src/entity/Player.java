@@ -193,6 +193,9 @@ public class Player extends Entity{
                 if (dy == -1) direction = "up";
                 if (dy == 1) direction = "down";
             }
+
+            gp.eventHandler.checkEvent();
+            gp.keyHandler.enterPressed = false;
         }
 
         // --- 7. ANIMACIONES ---
